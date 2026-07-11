@@ -69,6 +69,10 @@
   .chip-good{background:rgba(92,224,178,.14);color:#5CE0B2}
   .chip-bad{background:rgba(255,143,165,.14);color:#FF8FA5}
 
+  .hero.hero4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:900px){.hero.hero4{grid-template-columns:1fr 1fr}}
+  @media(max-width:520px){.hero.hero4{grid-template-columns:1fr}}
+
   /* KPI secondary cards */
   .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px}
   .kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 18px 16px;box-shadow:var(--shadow)}
@@ -119,6 +123,21 @@
   .cost.a-violet{--accent:var(--violet);--accent-soft:var(--violet-soft)}
   .cost.a-teal{--accent:var(--teal);--accent-soft:var(--teal-soft)}
 
+  /* Notes: learnings + next actions */
+  .notes{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+  .note-panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
+  .note-panel h2{font-size:13px;font-weight:620;letter-spacing:.02em;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:9px}
+  .note-panel h2 .nic{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .note-panel h2 .nic svg{width:14px;height:14px}
+  .n-violet .nic{background:var(--violet-soft);color:var(--violet)}
+  .n-amber .nic{background:var(--amber-soft);color:var(--amber)}
+  .note-list{display:flex;flex-direction:column;gap:9px}
+  .note-item{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;color:var(--ink);line-height:1.55}
+  .note-item .mark{flex-shrink:0;margin-top:7px;width:6px;height:6px;border-radius:50%}
+  .n-violet .mark{background:var(--violet)}
+  .n-amber .mark{background:var(--amber)}
+  .note-empty{font-size:12.5px;color:var(--ink3);font-style:italic}
+
   .state{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:48px 24px;text-align:center;box-shadow:var(--shadow)}
   .state .em{width:46px;height:46px;border-radius:12px;background:var(--brand-soft);color:var(--brand);display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
   .state .em svg{width:22px;height:22px}
@@ -134,6 +153,7 @@
     .kpis{grid-template-columns:1fr 1fr}
     .grid{grid-template-columns:1fr}
     .costs{grid-template-columns:1fr}
+    .notes{grid-template-columns:1fr}
   }
   @media(max-width:520px){
     body{padding:14px}
@@ -186,8 +206,32 @@
 
   <div id="dash" class="hidden">
 
+    <!-- MONTH VIEW: four totals only -->
+    <div class="hero hero4 hidden" id="monthHero">
+      <div class="hcell">
+        <div class="hlab"><span class="hdot" style="background:#7FA7FF"></span>Total ad spend</div>
+        <div class="hval" id="m_spend">—</div>
+        <div class="hsub" id="m_spend_sub"></div>
+      </div>
+      <div class="hcell">
+        <div class="hlab"><span class="hdot" style="background:#5CE0B2"></span>Total revenue</div>
+        <div class="hval" id="m_rev">—</div>
+        <div class="hsub" id="m_rev_sub"></div>
+      </div>
+      <div class="hcell">
+        <div class="hlab"><span class="hdot" style="background:#FFC46B"></span>Total profits</div>
+        <div class="hval" id="m_profit">—</div>
+        <div class="hsub">revenue − ad spend</div>
+      </div>
+      <div class="hcell">
+        <div class="hlab"><span class="hdot" style="background:#C9A7FF"></span>Total sales closed</div>
+        <div class="hval" id="m_sales">—</div>
+        <div class="hsub" id="m_sales_sub"></div>
+      </div>
+    </div>
+
     <!-- HERO: revenue / profit / ROAS -->
-    <div class="hero">
+    <div class="hero" id="eventHero">
       <div class="hcell">
         <div class="hlab"><span class="hdot" style="background:#5CE0B2"></span>Total revenue</div>
         <div class="hval" id="h_rev">—</div>
@@ -214,7 +258,7 @@
       </div>
     </div>
 
-    <div class="kpis">
+    <div class="kpis" id="kpiRow">
       <div class="kpi">
         <div class="lab"><span class="ic i-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>Ad spend</div>
         <div class="val" id="k_spend">—</div>
@@ -232,7 +276,7 @@
       </div>
     </div>
 
-    <div class="grid">
+    <div class="grid" id="gridRow">
       <div class="panel">
         <h2><span class="bar"></span>Conversion funnel</h2>
         <div class="funnel" id="funnel"></div>
@@ -243,7 +287,7 @@
       </div>
     </div>
 
-    <div class="costs">
+    <div class="costs" id="costRow">
       <div class="cost a-violet">
         <div class="lab"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg></span>Cost per lead</div>
         <div class="val" id="c_cpl">—</div>
@@ -258,6 +302,17 @@
         <div class="lab"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h20v13H2z"/><path d="M8 21h8M12 16v5"/><path d="M7 11l3-3 2.5 2L16 6"/></svg></span>Show-up rate</div>
         <div class="val" id="c_show">—</div>
         <div class="note">Registrants who attended</div>
+      </div>
+    </div>
+
+    <div class="notes">
+      <div class="note-panel n-violet">
+        <h2><span class="nic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.4 1 2.3h6c0-.9.4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg></span>Key Learnings</h2>
+        <div class="note-list" id="learnings"></div>
+      </div>
+      <div class="note-panel n-amber">
+        <h2><span class="nic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></span>Next Actions</h2>
+        <div class="note-list" id="actions"></div>
       </div>
     </div>
   </div>
@@ -343,6 +398,16 @@ function buildEvents(){
   });
   order.forEach(mon=>{
     const og=document.createElement("optgroup");og.label=mon;
+    // combined option when the month has 2+ events
+    if(groups[mon].length>1 && mon!=="Other"){
+      const oc=document.createElement("option");
+      oc.value="m:"+mon;
+      const nData=groups[mon].filter(e=>e.filled>0).length;
+      oc.textContent="▣ All "+mon+" events combined"+(nData?"":"  · no data yet");
+      oc.dataset.filled=groups[mon].reduce((a,e)=>a+e.filled,0);
+      oc.dataset.month=mon;
+      og.appendChild(oc);
+    }
     groups[mon].forEach(ev=>{
       const o=document.createElement("option");
       o.value=ev.ci;
@@ -362,30 +427,100 @@ function render(){
   drawEvent();
 }
 
+function metricsForCol(tab,map,ci){
+  const g=l=>num(cell(tab,map,l,ci));
+  return {
+    spendUSD:g("Total Spend (USD)"),spendAED:g("Total Spend (AED)"),
+    paid:g("Total Paid Leads"),nonpaid:g("Total Non-paid Leads"),leads:g("Total Leads"),
+    shows:g("Show-ups"),
+    otoEB:g("OTO Early bird ($24.95)"),otoN:g("OTO Normal ($39)"),otoRev:g("OTO Revenue (USD)"),
+    salesNew:g("No. of Sales (New member)"),salesExist:g("No. of Sales (Existing member)"),
+    newOffer:g("New Member Offer($497)"),existOffer:g("Existing Member Offer ($1497)"),
+    totalRev:g("Total Revenue (USD)"),
+    showRate:g("Show-up Rate"),convRate:g("Conversion Rate"),
+    cpl:g("Cost Per Lead (AED)"),cpa:g("Cost Per New Sales (CPA)"),roas:g("ROAS")
+  };
+}
+const SUM_KEYS=["spendUSD","spendAED","paid","nonpaid","leads","shows","otoEB","otoN","otoRev","salesNew","salesExist","newOffer","existOffer","totalRev"];
+function aggregateMonth(tab,map,cols){
+  const m={};let any=false;
+  SUM_KEYS.forEach(k=>m[k]=null);
+  cols.forEach(ci=>{
+    const one=metricsForCol(tab,map,ci);
+    const has=[one.spendUSD,one.leads,one.totalRev,one.shows].some(v=>v!=null);
+    if(!has)return;
+    any=true;
+    SUM_KEYS.forEach(k=>{ if(one[k]!=null) m[k]=(m[k]||0)+one[k]; });
+  });
+  if(!any)return null;
+  // recompute derived metrics using the sheet's own formulas
+  m.showRate = (m.shows!=null&&m.leads)? m.shows/m.leads:null;
+  const totSales=(m.salesNew||0)+(m.salesExist||0);
+  m.convRate = (m.shows)? totSales/m.shows:null;
+  m.cpl = (m.spendAED!=null&&m.paid)? m.spendAED/m.paid:null;
+  m.cpa = (m.spendUSD!=null&&m.salesNew)? m.spendUSD/m.salesNew:null;
+  m.roas = (m.newOffer!=null&&m.spendUSD)? m.newOffer/m.spendUSD:null;
+  return m;
+}
+
 function drawEvent(){
   const tab=RAW.tabs[curTab];
   const map=rowMap(tab);
-  const ci=+$("eventSel").value;
-  const header=tab[0]||[];
-  const evName=cleanName(header[ci]);
+  const selVal=$("eventSel").value;
   const selOpt=$("eventSel").selectedOptions[0];
+  const header=tab[0]||[];
+  const isAgg=selVal.startsWith("m:");
+  let M, evName, ci=null;
+
+  if(isAgg){
+    const mon=selVal.slice(2);
+    // find all event columns in this month
+    const cols=[];
+    for(let c=1;c<header.length;c++){
+      const lbl=cleanName(header[c]);
+      if(lbl && monthOf(lbl)===mon) cols.push(c);
+    }
+    M=aggregateMonth(tab,map,cols);
+    const nData=cols.filter(c=>{const o=metricsForCol(tab,map,c);return [o.spendUSD,o.leads,o.totalRev,o.shows].some(v=>v!=null);}).length;
+    evName="All "+mon+" events ("+nData+" of "+cols.length+" with data)";
+    $("curMonth").textContent=mon;
+  }else{
+    ci=+selVal;
+    M=metricsForCol(tab,map,ci);
+    evName=cleanName(header[ci]);
+    $("curMonth").textContent=selOpt?selOpt.dataset.month:monthOf(evName);
+    const has=[M.spendUSD,M.leads,M.totalRev,M.shows].some(v=>v!=null);
+    if(!has)M=null;
+  }
   $("curEvent").textContent=evName;
-  $("curMonth").textContent=selOpt?selOpt.dataset.month:monthOf(evName);
 
-  const g=l=>num(cell(tab,map,l,ci));
-  const spendUSD=g("Total Spend (USD)"),spendAED=g("Total Spend (AED)");
-  const paid=g("Total Paid Leads"),nonpaid=g("Total Non-paid Leads"),leads=g("Total Leads");
-  const shows=g("Show-ups");
-  const otoEB=g("OTO Early bird ($24.95)"),otoN=g("OTO Normal ($39)"),otoRev=g("OTO Revenue (USD)");
-  const salesNew=g("No. of Sales (New member)"),salesExist=g("No. of Sales (Existing member)");
-  const newOffer=g("New Member Offer($497)"),existOffer=g("Existing Member Offer ($1497)");
-  const totalRev=g("Total Revenue (USD)");
-  const showRate=g("Show-up Rate"),convRate=g("Conversion Rate");
-  const cpl=g("Cost Per Lead (AED)"),cpa=g("Cost Per New Sales (CPA)"),roas=g("ROAS");
-
-  const hasData=[spendUSD,leads,totalRev,shows].some(v=>v!=null);
-  if(!hasData){showState("emptybox");return;}
+  if(!M){showState("emptybox");return;}
   showState("dash");
+
+  // Toggle: month view = 4 totals only; event view = full dashboard
+  const perEvent=["eventHero","kpiRow","gridRow","costRow"];
+  $("monthHero").classList.toggle("hidden",!isAgg);
+  perEvent.forEach(id=>$(id).classList.toggle("hidden",isAgg));
+  document.querySelector(".notes").classList.toggle("hidden",isAgg);
+
+  if(isAgg){
+    const p=(M.totalRev!=null&&M.spendUSD!=null)?M.totalRev-M.spendUSD:null;
+    $("m_spend").textContent=usd(M.spendUSD);
+    $("m_spend_sub").textContent=M.spendAED!=null?aed(M.spendAED):"";
+    $("m_rev").textContent=usd(M.totalRev);
+    $("m_rev_sub").textContent=M.leads!=null?intf(M.leads)+" total leads":"";
+    const mp=$("m_profit");
+    mp.textContent=p==null?"—":(p<0?"−":"+")+usd(Math.abs(p));
+    mp.classList.remove("money-good","money-bad");
+    if(p!=null)mp.classList.add(p>=0?"money-good":"money-bad");
+    const ts=(M.salesNew||0)+(M.salesExist||0);
+    $("m_sales").textContent=(M.salesNew!=null||M.salesExist!=null)?intf(ts):"—";
+    $("m_sales_sub").textContent=(M.salesNew!=null)?`${intf(M.salesNew)} new · ${intf(M.salesExist)} existing`:"";
+    $("stamp").textContent="Data pulled "+new Date().toLocaleString("en-GB",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})+" · refresh for latest";
+    return;
+  }
+
+  const {spendUSD,spendAED,paid,nonpaid,leads,shows,otoEB,otoN,otoRev,salesNew,salesExist,newOffer,existOffer,totalRev,showRate,convRate,cpl,cpa,roas}=M;
 
   // HERO
   $("h_rev").textContent=usd(totalRev);
@@ -446,6 +581,31 @@ function drawEvent(){
   $("c_cpl").textContent=cpl!=null?"AED "+cpl.toFixed(2):"—";
   $("c_cpa").textContent=usd(cpa);
   $("c_show").textContent=pct(showRate);
+
+  // Notes: Key Learnings + Next Actions — per event only, hidden in combined view
+  const notesEl=document.querySelector(".notes");
+  if(isAgg){
+    notesEl.classList.add("hidden");
+  }else{
+    notesEl.classList.remove("hidden");
+    const rawText=l=>{
+      const v=cell(tab,map,l,ci);
+      return (v==null||v==="#ERROR!"||v==="#DIV/0!")?"":String(v).trim();
+    };
+  const noteLabels={
+    learnings:["Key Learnings","Key Learning","Learnings","Findings","Feedbacks","Feedback"],
+    actions:["Next Actions","Next Action","Action Items","Actions","Action to be taken next"]
+  };
+  const firstMatch=cands=>{for(const c of cands){if(map[c]!=null)return rawText(c);}return "";};
+  const renderNotes=(elId,text,emptyMsg)=>{
+    const el=$(elId);
+    const lines=text.split(/\r?\n/).map(s=>s.replace(/^[-•*]\s*/,"").trim()).filter(Boolean);
+    if(!lines.length){el.innerHTML=`<div class="note-empty">${emptyMsg}</div>`;return;}
+    el.innerHTML=lines.map(l=>`<div class="note-item"><span class="mark"></span><span>${l.replace(/</g,"&lt;")}</span></div>`).join("");
+  };
+  renderNotes("learnings",firstMatch(noteLabels.learnings),"Nothing noted yet — add a \"Key Learnings\" row on the sheet and write per event.");
+  renderNotes("actions",firstMatch(noteLabels.actions),"Nothing planned yet — add a \"Next Actions\" row on the sheet and write per event.");
+  }
 
   $("stamp").textContent="Data pulled "+new Date().toLocaleString("en-GB",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})+" · refresh for latest";
 }
