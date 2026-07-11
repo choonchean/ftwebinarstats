@@ -348,14 +348,14 @@ function aed(v){return v==null?"":"AED "+v.toLocaleString("en-US",{maximumFracti
 function intf(v){return v==null?"—":Math.round(v).toLocaleString("en-US");}
 function pct(v){return v==null?"—":(v*100).toFixed(2)+"%";}
 
-function rowMap(tab){const m={};tab.forEach((r,i)=>{const k=(r[0]||"").trim();if(k)m[k]=i;});return m;}
+function rowMap(tab){const m={};tab.forEach((r,i)=>{const k=(r[0]||"").trim();if(k){m[k]=i;const k2=k.replace(/:+$/,"").trim();if(k2&&k2!==k&&m[k2]==null)m[k2]=i;}});return m;}
 function cell(tab,map,label,col){const i=map[label];return i==null?null:tab[i][col];}
 
-async function load(){
-  showState("loading");
+async function load(silent){
+  if(!silent) showState("loading");
   $("refreshBtn").classList.add("spin");
   try{
-    const res=await fetch(FEED_URL+"?key="+encodeURIComponent(TOKEN),{redirect:"follow"});
+    const res=await fetch(FEED_URL+"?key="+encodeURIComponent(TOKEN)+"&t="+Date.now(),{redirect:"follow",cache:"no-store"});
     const data=await res.json();
     if(data.error) throw new Error("Feed says: "+data.error+" — the token may be wrong.");
     if(!data.tabs||!Object.keys(data.tabs).length) throw new Error("No tabs found in the sheet.");
@@ -363,6 +363,7 @@ async function load(){
     buildTabs();
     render();
   }catch(e){
+    if(silent && RAW) return; // background refresh failed: keep showing current data
     $("errmsg").textContent=e.message+" Open the feed URL directly in a browser tab to confirm it returns data, then refresh here.";
     showState("errbox");
   }finally{
@@ -380,7 +381,9 @@ function buildTabs(){
 function buildEvents(){
   const tab=RAW.tabs[curTab];
   const header=tab[0]||[];
-  const sel=$("eventSel");sel.innerHTML="";
+  const sel=$("eventSel");
+  const prev=sel.value; // remember selection across refreshes
+  sel.innerHTML="";
   // collect events with month + fill status, preserving sheet order
   const events=[];
   for(let ci=1;ci<header.length;ci++){
@@ -417,8 +420,12 @@ function buildEvents(){
     });
     sel.appendChild(og);
   });
-  const withData=[...sel.options].find(o=>+o.dataset.filled>0);
-  sel.value=withData?withData.value:(sel.options[0]?.value??1);
+  const stillThere=prev && [...sel.options].some(o=>o.value===prev);
+  if(stillThere){ sel.value=prev; }
+  else{
+    const withData=[...sel.options].find(o=>+o.dataset.filled>0);
+    sel.value=withData?withData.value:(sel.options[0]?.value??1);
+  }
 }
 
 function render(){
@@ -516,7 +523,7 @@ function drawEvent(){
     const ts=(M.salesNew||0)+(M.salesExist||0);
     $("m_sales").textContent=(M.salesNew!=null||M.salesExist!=null)?intf(ts):"—";
     $("m_sales_sub").textContent=(M.salesNew!=null)?`${intf(M.salesNew)} new · ${intf(M.salesExist)} existing`:"";
-    $("stamp").textContent="Data pulled "+new Date().toLocaleString("en-GB",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})+" · refresh for latest";
+    $("stamp").textContent="Data pulled "+new Date().toLocaleString("en-GB",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})+" · refresh for latest · v2.1";
     return;
   }
 
@@ -607,15 +614,18 @@ function drawEvent(){
   renderNotes("actions",firstMatch(noteLabels.actions),"Nothing planned yet — add a \"Next Actions\" row on the sheet and write per event.");
   }
 
-  $("stamp").textContent="Data pulled "+new Date().toLocaleString("en-GB",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})+" · refresh for latest";
+  $("stamp").textContent="Data pulled "+new Date().toLocaleString("en-GB",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})+" · refresh for latest · v2.1";
 }
 
 function showState(which){["loading","errbox","emptybox","dash"].forEach(id=>$(id).classList.toggle("hidden",id!==which));}
 
 $("tabSel").addEventListener("change",e=>{curTab=e.target.value;render();});
 $("eventSel").addEventListener("change",drawEvent);
-$("refreshBtn").addEventListener("click",load);
-load();
+$("refreshBtn").addEventListener("click",()=>load(false));
+load(false);
+// silent background refresh every 3 minutes (skips when tab is hidden)
+setInterval(()=>{ if(!document.hidden) load(true); }, 3*60*1000);
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden && RAW) load(true); });
 </script>
 </body>
 </html>
