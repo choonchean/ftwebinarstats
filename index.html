@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FT Webinar Performance</title>
+<style>
+  :root{
+    --ink:#0E1726; --ink2:#5A6577; --ink3:#93A0B4;
+    --line:#E6EAF0; --line2:#EEF1F6;
+    --bg:#F6F8FB; --card:#FFFFFF;
+    --brand:#2F6BFF; --brand-soft:#EAF1FF;
+    --teal:#0FA678; --teal-soft:#E4F6F0;
+    --amber:#E8912A; --amber-soft:#FCF1E1;
+    --violet:#6D5AE6; --violet-soft:#EEEBFC;
+    --rose:#E24B6B; --rose-soft:#FCEAEF;
+    --heroink:#F4F7FE; --heroink2:#9FB0D0;
+    --radius:16px;
+    --shadow:0 1px 2px rgba(16,23,38,.04), 0 8px 24px rgba(16,23,38,.05);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;padding:24px}
+  .wrap{max-width:1180px;margin:0 auto}
+
+  .top{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:22px}
+  .brandline{display:flex;align-items:center;gap:12px}
+  .logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--brand),#4B84FF);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .logo svg{width:20px;height:20px}
+  h1{font-size:19px;font-weight:650;letter-spacing:-.01em}
+  .sub{font-size:13px;color:var(--ink2);margin-top:1px}
+  .controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  select{appearance:none;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 34px 9px 13px;font-size:13.5px;font-weight:550;color:var(--ink);cursor:pointer;box-shadow:var(--shadow);max-width:290px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235A6577' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+  select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+  optgroup{font-size:11.5px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em}
+  optgroup option{font-size:13.5px;font-weight:500;color:var(--ink);text-transform:none;letter-spacing:0}
+  .refresh{background:var(--card);border:1px solid var(--line);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow);color:var(--ink2)}
+  .refresh:hover{color:var(--brand);border-color:var(--brand)}
+  .refresh svg{width:16px;height:16px}
+  .refresh.spin svg{animation:sp 1s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
+  .eventbar{font-size:12.5px;color:var(--ink2);margin-bottom:18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--teal)}
+  .eventpill{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:3px 10px;font-weight:550;color:var(--ink);font-size:12.5px}
+  .monthtag{background:var(--brand-soft);color:var(--brand);border-radius:8px;padding:3px 10px;font-weight:650;font-size:12px}
+
+  /* ===== HERO: the money strip ===== */
+  .hero{background:#101B33;border-radius:20px;padding:26px 28px;margin-bottom:14px;box-shadow:0 12px 32px rgba(16,27,51,.22);display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:26px;position:relative;overflow:hidden}
+  .hero::before{content:"";position:absolute;right:-70px;top:-90px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(47,107,255,.28),transparent 68%)}
+  .hcell{position:relative}
+  .hcell + .hcell{border-left:1px solid rgba(255,255,255,.09);padding-left:26px}
+  .hlab{font-size:11.5px;font-weight:640;letter-spacing:.09em;text-transform:uppercase;color:var(--heroink2);display:flex;align-items:center;gap:7px}
+  .hlab .hdot{width:6px;height:6px;border-radius:50%}
+  .hval{font-size:40px;font-weight:740;letter-spacing:-.025em;color:var(--heroink);margin-top:9px;line-height:1.05;font-variant-numeric:tabular-nums}
+  .hsub{font-size:12.5px;color:var(--heroink2);margin-top:7px}
+  .hval.money-good{color:#5CE0B2}
+  .hval.money-bad{color:#FF8FA5}
+  .roasring{display:inline-flex;align-items:center;gap:12px;margin-top:6px}
+  .ring{width:64px;height:64px;flex-shrink:0}
+  .ring circle{fill:none;stroke-width:6;stroke-linecap:round}
+  .ring .bgc{stroke:rgba(255,255,255,.1)}
+  .ring .fgc{stroke:#5CE0B2;transition:stroke-dashoffset .9s cubic-bezier(.22,1,.36,1)}
+  .ring .fgc.bad{stroke:#FF8FA5}
+  .roastext .rv{font-size:34px;font-weight:740;letter-spacing:-.02em;color:var(--heroink);line-height:1}
+  .roastext .rn{font-size:12px;color:var(--heroink2);margin-top:5px}
+  .breakeven-chip{display:inline-block;margin-top:8px;font-size:11px;font-weight:650;padding:3px 10px;border-radius:20px}
+  .chip-good{background:rgba(92,224,178,.14);color:#5CE0B2}
+  .chip-bad{background:rgba(255,143,165,.14);color:#FF8FA5}
+
+  /* KPI secondary cards */
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 18px 16px;box-shadow:var(--shadow)}
+  .kpi .lab{font-size:12px;color:var(--ink2);font-weight:550;display:flex;align-items:center;gap:7px}
+  .kpi .ic{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .kpi .ic svg{width:15px;height:15px}
+  .kpi .val{font-size:26px;font-weight:680;letter-spacing:-.02em;margin-top:11px;line-height:1.1}
+  .kpi .foot{font-size:11.5px;color:var(--ink3);margin-top:5px}
+  .i-blue{background:var(--brand-soft);color:var(--brand)}
+  .i-teal{background:var(--teal-soft);color:var(--teal)}
+  .i-amber{background:var(--amber-soft);color:var(--amber)}
+
+  .grid{display:grid;grid-template-columns:1.15fr 1fr;gap:14px;margin-bottom:14px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
+  .panel h2{font-size:13px;font-weight:620;color:var(--ink);letter-spacing:.02em;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+  .panel h2 .bar{width:3px;height:13px;border-radius:2px;background:var(--brand)}
+
+  .funnel{display:flex;flex-direction:column;gap:11px}
+  .fhead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
+  .fname{font-size:13px;font-weight:550;color:var(--ink)}
+  .fval{font-size:14px;font-weight:640;color:var(--ink)}
+  .fval small{font-size:11.5px;color:var(--ink3);font-weight:500;margin-left:5px}
+  .ftrack{height:9px;background:var(--line2);border-radius:6px;overflow:hidden}
+  .ffill{height:100%;border-radius:6px;transition:width .7s cubic-bezier(.22,1,.36,1)}
+
+  .rev{display:flex;flex-direction:column}
+  .rrow{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--line2)}
+  .rrow:last-child{border-bottom:none}
+  .rrow.total{border-top:2px solid var(--line);margin-top:4px;padding-top:14px}
+  .rlab{font-size:13px;color:var(--ink2)}
+  .rlab b{color:var(--ink);font-weight:600}
+  .rval{font-size:14px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+  .rrow.total .rlab{font-size:13.5px;font-weight:640;color:var(--ink)}
+  .rrow.total .rval{font-size:18px;font-weight:700;color:var(--teal)}
+  .badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;margin-left:8px}
+  .b-teal{background:var(--teal-soft);color:var(--teal)}
+  .b-amber{background:var(--amber-soft);color:#B26B12}
+
+  .costs{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px}
+  .cost{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:17px 18px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .cost::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent,var(--brand))}
+  .cost .lab{font-size:12px;color:var(--ink2);font-weight:550;margin-bottom:11px;display:flex;align-items:center;gap:8px}
+  .cost .ic{width:28px;height:28px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--accent-soft,var(--brand-soft));color:var(--accent,var(--brand))}
+  .cost .ic svg{width:15px;height:15px}
+  .cost .val{font-size:23px;font-weight:680;letter-spacing:-.02em;color:var(--accent,var(--ink))}
+  .cost .note{font-size:11.5px;color:var(--ink3);margin-top:4px}
+  .cost.a-rose{--accent:var(--rose);--accent-soft:var(--rose-soft)}
+  .cost.a-violet{--accent:var(--violet);--accent-soft:var(--violet-soft)}
+  .cost.a-teal{--accent:var(--teal);--accent-soft:var(--teal-soft)}
+
+  .state{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:48px 24px;text-align:center;box-shadow:var(--shadow)}
+  .state .em{width:46px;height:46px;border-radius:12px;background:var(--brand-soft);color:var(--brand);display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
+  .state .em svg{width:22px;height:22px}
+  .state h3{font-size:15px;font-weight:620;margin-bottom:5px}
+  .state p{font-size:13px;color:var(--ink2);max-width:380px;margin:0 auto}
+  .spinner{width:30px;height:30px;border:3px solid var(--line);border-top-color:var(--brand);border-radius:50%;animation:sp .8s linear infinite;margin:0 auto 14px}
+  .hidden{display:none}
+  .foot-note{font-size:11.5px;color:var(--ink3);text-align:center;margin-top:20px}
+
+  @media(max-width:900px){
+    .hero{grid-template-columns:1fr}
+    .hcell + .hcell{border-left:none;padding-left:0;border-top:1px solid rgba(255,255,255,.09);padding-top:18px}
+    .kpis{grid-template-columns:1fr 1fr}
+    .grid{grid-template-columns:1fr}
+    .costs{grid-template-columns:1fr}
+  }
+  @media(max-width:520px){
+    body{padding:14px}
+    .kpis{grid-template-columns:1fr}
+    .hval{font-size:33px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div class="brandline">
+      <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l3-4 3 2 4-6"/></svg></div>
+      <div>
+        <h1>FT Webinar Performance</h1>
+        <div class="sub">Live from Google Sheets · <span id="tabName">—</span></div>
+      </div>
+    </div>
+    <div class="controls">
+      <select id="tabSel" aria-label="Select period"></select>
+      <select id="eventSel" aria-label="Select event"></select>
+      <button class="refresh" id="refreshBtn" aria-label="Refresh data" title="Refresh">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="eventbar">
+    <span class="dot"></span> Showing <span class="monthtag" id="curMonth">—</span> <span class="eventpill" id="curEvent">—</span>
+  </div>
+
+  <div class="state" id="loading">
+    <div class="spinner"></div>
+    <h3>Loading your stats…</h3>
+    <p>Pulling the latest numbers from your sheet.</p>
+  </div>
+
+  <div class="state hidden" id="errbox">
+    <div class="em"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg></div>
+    <h3>Couldn't load the data</h3>
+    <p id="errmsg"></p>
+  </div>
+
+  <div class="state hidden" id="emptybox">
+    <div class="em"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4M16 2v4M3 10h18"/><rect x="3" y="4" width="18" height="18" rx="2"/></svg></div>
+    <h3>No data for this event yet</h3>
+    <p>This webinar hasn't been filled in on the sheet. Pick another event above, or check back once the numbers are in.</p>
+  </div>
+
+  <div id="dash" class="hidden">
+
+    <!-- HERO: revenue / profit / ROAS -->
+    <div class="hero">
+      <div class="hcell">
+        <div class="hlab"><span class="hdot" style="background:#5CE0B2"></span>Total revenue</div>
+        <div class="hval" id="h_rev">—</div>
+        <div class="hsub" id="h_rev_sub">—</div>
+      </div>
+      <div class="hcell">
+        <div class="hlab"><span class="hdot" style="background:#7FA7FF"></span>Net profit</div>
+        <div class="hval" id="h_profit">—</div>
+        <div class="hsub" id="h_profit_sub">revenue − ad spend</div>
+      </div>
+      <div class="hcell">
+        <div class="hlab"><span class="hdot" style="background:#FFC46B"></span>ROAS</div>
+        <div class="roasring">
+          <svg class="ring" viewBox="0 0 64 64">
+            <circle class="bgc" cx="32" cy="32" r="27"/>
+            <circle class="fgc" id="ringFg" cx="32" cy="32" r="27" transform="rotate(-90 32 32)" stroke-dasharray="169.6" stroke-dashoffset="169.6"/>
+          </svg>
+          <div class="roastext">
+            <div class="rv" id="h_roas">—</div>
+            <div class="rn">return per $1 spent</div>
+          </div>
+        </div>
+        <div><span class="breakeven-chip" id="h_chip"></span></div>
+      </div>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi">
+        <div class="lab"><span class="ic i-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>Ad spend</div>
+        <div class="val" id="k_spend">—</div>
+        <div class="foot" id="k_spend_aed"></div>
+      </div>
+      <div class="kpi">
+        <div class="lab"><span class="ic i-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Total leads</div>
+        <div class="val" id="k_leads">—</div>
+        <div class="foot" id="k_leads_split"></div>
+      </div>
+      <div class="kpi">
+        <div class="lab"><span class="ic i-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>Sales closed</div>
+        <div class="val" id="k_sales">—</div>
+        <div class="foot" id="k_sales_split"></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <h2><span class="bar"></span>Conversion funnel</h2>
+        <div class="funnel" id="funnel"></div>
+      </div>
+      <div class="panel">
+        <h2><span class="bar" style="background:var(--teal)"></span>Revenue breakdown</h2>
+        <div class="rev" id="revbreak"></div>
+      </div>
+    </div>
+
+    <div class="costs">
+      <div class="cost a-violet">
+        <div class="lab"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg></span>Cost per lead</div>
+        <div class="val" id="c_cpl">—</div>
+        <div class="note">Per lead acquired</div>
+      </div>
+      <div class="cost a-rose">
+        <div class="lab"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg></span>Cost per acquisition</div>
+        <div class="val" id="c_cpa">—</div>
+        <div class="note">Per new member sale</div>
+      </div>
+      <div class="cost a-teal">
+        <div class="lab"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h20v13H2z"/><path d="M8 21h8M12 16v5"/><path d="M7 11l3-3 2.5 2L16 6"/></svg></span>Show-up rate</div>
+        <div class="val" id="c_show">—</div>
+        <div class="note">Registrants who attended</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot-note" id="stamp"></div>
+</div>
+
+<script>
+// ========= CONFIG =========
+const FEED_URL = "https://script.google.com/macros/s/AKfycbyyGq3EmWQsUPV1f1dZf0qbVJyuGI-UpkCxMajTbifEeW3jOI8pYkgXJsuXFmxghqpaVg/exec";
+const TOKEN = "FT2026";
+// ==========================
+
+const $ = id => document.getElementById(id);
+let RAW=null, curTab=null;
+
+const isNum=v=>v!==""&&v!=null&&v!=="#ERROR!"&&v!=="#DIV/0!"&&!isNaN(parseFloat(v));
+const num=v=>isNum(v)?parseFloat(v):null;
+const cleanName=s=>(s||"").replace(/\s*\n\s*/g," ").replace(/\s+/g," ").trim();
+
+const MONTH_ALIASES=[["january","jan"],["february","feb"],["march","mar"],["april","apr"],["may"],["june","jun"],["july","jul"],["august","aug"],["september","sept","sep"],["october","oct"],["november","nov"],["december","dec"]];
+const MONTH_FULL=["January","February","March","April","May","June","July","August","September","October","November","December"];
+function monthOf(name){
+  const s=name.toLowerCase();
+  for(let i=0;i<MONTH_ALIASES.length;i++){
+    for(const a of MONTH_ALIASES[i]){ if(new RegExp("\\b"+a).test(s)) return MONTH_FULL[i]; }
+  }
+  return "Other";
+}
+
+function usd(v){return v==null?"—":"$"+v.toLocaleString("en-US",{minimumFractionDigits:v%1?2:0,maximumFractionDigits:2});}
+function aed(v){return v==null?"":"AED "+v.toLocaleString("en-US",{maximumFractionDigits:0});}
+function intf(v){return v==null?"—":Math.round(v).toLocaleString("en-US");}
+function pct(v){return v==null?"—":(v*100).toFixed(2)+"%";}
+
+function rowMap(tab){const m={};tab.forEach((r,i)=>{const k=(r[0]||"").trim();if(k)m[k]=i;});return m;}
+function cell(tab,map,label,col){const i=map[label];return i==null?null:tab[i][col];}
+
+async function load(){
+  showState("loading");
+  $("refreshBtn").classList.add("spin");
+  try{
+    const res=await fetch(FEED_URL+"?key="+encodeURIComponent(TOKEN),{redirect:"follow"});
+    const data=await res.json();
+    if(data.error) throw new Error("Feed says: "+data.error+" — the token may be wrong.");
+    if(!data.tabs||!Object.keys(data.tabs).length) throw new Error("No tabs found in the sheet.");
+    RAW=data;
+    buildTabs();
+    render();
+  }catch(e){
+    $("errmsg").textContent=e.message+" Open the feed URL directly in a browser tab to confirm it returns data, then refresh here.";
+    showState("errbox");
+  }finally{
+    $("refreshBtn").classList.remove("spin");
+  }
+}
+
+function buildTabs(){
+  const sel=$("tabSel");sel.innerHTML="";
+  Object.keys(RAW.tabs).forEach(name=>{const o=document.createElement("option");o.value=name;o.textContent=name;sel.appendChild(o);});
+  curTab=curTab&&RAW.tabs[curTab]?curTab:Object.keys(RAW.tabs)[0];
+  sel.value=curTab;
+}
+
+function buildEvents(){
+  const tab=RAW.tabs[curTab];
+  const header=tab[0]||[];
+  const sel=$("eventSel");sel.innerHTML="";
+  // collect events with month + fill status, preserving sheet order
+  const events=[];
+  for(let ci=1;ci<header.length;ci++){
+    const label=cleanName(header[ci]);
+    if(!label) continue;
+    let filled=0;
+    for(let ri=1;ri<tab.length;ri++){ if(isNum(tab[ri][ci])) filled++; }
+    events.push({ci,label,month:monthOf(label),filled});
+  }
+  // group by month, in order of first appearance
+  const order=[];const groups={};
+  events.forEach(ev=>{
+    if(!groups[ev.month]){groups[ev.month]=[];order.push(ev.month);}
+    groups[ev.month].push(ev);
+  });
+  order.forEach(mon=>{
+    const og=document.createElement("optgroup");og.label=mon;
+    groups[mon].forEach(ev=>{
+      const o=document.createElement("option");
+      o.value=ev.ci;
+      o.textContent=ev.label+(ev.filled?"":"  · no data yet");
+      o.dataset.filled=ev.filled;o.dataset.month=ev.month;
+      og.appendChild(o);
+    });
+    sel.appendChild(og);
+  });
+  const withData=[...sel.options].find(o=>+o.dataset.filled>0);
+  sel.value=withData?withData.value:(sel.options[0]?.value??1);
+}
+
+function render(){
+  $("tabName").textContent=curTab;
+  buildEvents();
+  drawEvent();
+}
+
+function drawEvent(){
+  const tab=RAW.tabs[curTab];
+  const map=rowMap(tab);
+  const ci=+$("eventSel").value;
+  const header=tab[0]||[];
+  const evName=cleanName(header[ci]);
+  const selOpt=$("eventSel").selectedOptions[0];
+  $("curEvent").textContent=evName;
+  $("curMonth").textContent=selOpt?selOpt.dataset.month:monthOf(evName);
+
+  const g=l=>num(cell(tab,map,l,ci));
+  const spendUSD=g("Total Spend (USD)"),spendAED=g("Total Spend (AED)");
+  const paid=g("Total Paid Leads"),nonpaid=g("Total Non-paid Leads"),leads=g("Total Leads");
+  const shows=g("Show-ups");
+  const otoEB=g("OTO Early bird ($24.95)"),otoN=g("OTO Normal ($39)"),otoRev=g("OTO Revenue (USD)");
+  const salesNew=g("No. of Sales (New member)"),salesExist=g("No. of Sales (Existing member)");
+  const newOffer=g("New Member Offer($497)"),existOffer=g("Existing Member Offer ($1497)");
+  const totalRev=g("Total Revenue (USD)");
+  const showRate=g("Show-up Rate"),convRate=g("Conversion Rate");
+  const cpl=g("Cost Per Lead (AED)"),cpa=g("Cost Per New Sales (CPA)"),roas=g("ROAS");
+
+  const hasData=[spendUSD,leads,totalRev,shows].some(v=>v!=null);
+  if(!hasData){showState("emptybox");return;}
+  showState("dash");
+
+  // HERO
+  $("h_rev").textContent=usd(totalRev);
+  $("h_rev_sub").textContent = spendUSD!=null? "from "+usd(spendUSD)+" ad spend":"";
+  const profit=(totalRev!=null&&spendUSD!=null)? totalRev-spendUSD:null;
+  const hp=$("h_profit");
+  hp.textContent = profit==null?"—":(profit<0?"−":"+")+usd(Math.abs(profit)).slice(0);
+  hp.classList.remove("money-good","money-bad");
+  if(profit!=null) hp.classList.add(profit>=0?"money-good":"money-bad");
+  $("h_roas").textContent = roas!=null? roas.toFixed(2)+"×":"—";
+  const chip=$("h_chip");
+  chip.classList.remove("chip-good","chip-bad");
+  if(roas!=null){
+    const good=roas>=1;
+    chip.classList.add(good?"chip-good":"chip-bad");
+    chip.textContent=good?"Profitable · above breakeven":"Below breakeven";
+  }else chip.textContent="";
+  // ring: full at ROAS 3.0, proportional below
+  const ringMax=3, circ=169.6;
+  const frac=roas!=null? Math.min(roas/ringMax,1):0;
+  const fg=$("ringFg");
+  fg.style.strokeDashoffset=circ*(1-frac);
+  fg.classList.toggle("bad", roas!=null&&roas<1);
+
+  // KPIs
+  $("k_spend").textContent=usd(spendUSD);
+  $("k_spend_aed").textContent=spendAED!=null?aed(spendAED)+" spent":"";
+  $("k_leads").textContent=intf(leads);
+  $("k_leads_split").textContent=(paid!=null||nonpaid!=null)?`${intf(paid)} paid · ${intf(nonpaid)} organic`:"";
+  const totalSales=(salesNew||0)+(salesExist||0);
+  $("k_sales").textContent=(salesNew!=null||salesExist!=null)?intf(totalSales):"—";
+  $("k_sales_split").textContent=(salesNew!=null)?`${intf(salesNew)} new ($497) · ${intf(salesExist)} existing ($1,497)`:"";
+
+  // Funnel
+  const steps=[
+    {name:"Total leads",val:leads,sub:null,color:"var(--brand)"},
+    {name:"Show-ups",val:shows,sub:showRate!=null?pct(showRate)+" show-up":null,color:"var(--violet)"},
+    {name:"OTO buyers",val:(otoEB||0)+(otoN||0),sub:"early bird + normal",color:"var(--amber)"},
+    {name:"New members",val:salesNew,sub:convRate!=null?pct(convRate)+" conversion":null,color:"var(--teal)"},
+  ];
+  const maxV=Math.max(...steps.map(s=>s.val||0),1);
+  $("funnel").innerHTML=steps.map(s=>{
+    const w=s.val!=null?Math.max((s.val/maxV*100),2):0;
+    return `<div class="fstep"><div class="fhead"><span class="fname">${s.name}</span><span class="fval">${s.val!=null?intf(s.val):"—"}${s.sub?`<small>${s.sub}</small>`:""}</span></div><div class="ftrack"><div class="ffill" style="width:${w}%;background:${s.color}"></div></div></div>`;
+  }).join("");
+
+  // Revenue rows
+  const rows=[
+    {l:"OTO sales",sub:`${intf((otoEB||0)+(otoN||0))} orders`,v:otoRev,badge:null},
+    {l:"New member offers",sub:"$497 tier",v:newOffer,badge:salesNew!=null?`${intf(salesNew)} sold`:null,bc:"b-teal"},
+    {l:"Existing member offers",sub:"$1,497 tier",v:existOffer,badge:salesExist!=null?`${intf(salesExist)} sold`:null,bc:"b-amber"},
+  ];
+  let html=rows.map(r=>`<div class="rrow"><span class="rlab"><b>${r.l}</b>${r.badge?`<span class="badge ${r.bc}">${r.badge}</span>`:""}<br><span style="font-size:11.5px;color:var(--ink3)">${r.sub}</span></span><span class="rval">${usd(r.v)}</span></div>`).join("");
+  html+=`<div class="rrow total"><span class="rlab">Total revenue</span><span class="rval">${usd(totalRev)}</span></div>`;
+  $("revbreak").innerHTML=html;
+
+  // Costs
+  $("c_cpl").textContent=cpl!=null?"AED "+cpl.toFixed(2):"—";
+  $("c_cpa").textContent=usd(cpa);
+  $("c_show").textContent=pct(showRate);
+
+  $("stamp").textContent="Data pulled "+new Date().toLocaleString("en-GB",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})+" · refresh for latest";
+}
+
+function showState(which){["loading","errbox","emptybox","dash"].forEach(id=>$(id).classList.toggle("hidden",id!==which));}
+
+$("tabSel").addEventListener("change",e=>{curTab=e.target.value;render();});
+$("eventSel").addEventListener("change",drawEvent);
+$("refreshBtn").addEventListener("click",load);
+load();
+</script>
+</body>
+</html>
