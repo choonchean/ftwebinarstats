@@ -436,13 +436,19 @@ function render(){
 
 function metricsForCol(tab,map,ci){
   const g=l=>num(cell(tab,map,l,ci));
+  // offer rows: match by prefix so the price in the label can change freely
+  const keys=Object.keys(map);
+  const newKey=keys.find(k=>k.toLowerCase().startsWith("new member offer"));
+  const existKey=keys.find(k=>k.toLowerCase().startsWith("existing member offer"));
+  const tierOf=k=>{const m=(k||"").match(/\(([^)]+)\)/);if(!m)return null;const t=m[1].trim();const d=t.match(/^\$?(\d+(?:\.\d+)?)$/);return d?"$"+parseFloat(d[1]).toLocaleString("en-US"):t;};
   return {
     spendUSD:g("Total Spend (USD)"),spendAED:g("Total Spend (AED)"),
     paid:g("Total Paid Leads"),nonpaid:g("Total Non-paid Leads"),leads:g("Total Leads"),
     shows:g("Show-ups"),
     otoEB:g("OTO Early bird ($24.95)"),otoN:g("OTO Normal ($39)"),otoRev:g("OTO Revenue (USD)"),
     salesNew:g("No. of Sales (New member)"),salesExist:g("No. of Sales (Existing member)"),
-    newOffer:g("New Member Offer($497)"),existOffer:g("Existing Member Offer ($1497)"),
+    newOffer:newKey?g(newKey):null,existOffer:existKey?g(existKey):null,
+    newTier:tierOf(newKey),existTier:tierOf(existKey),
     totalRev:g("Total Revenue (USD)"),
     showRate:g("Show-up Rate"),convRate:g("Conversion Rate"),
     cpl:g("Cost Per Lead (AED)"),cpa:g("Cost Per New Sales (CPA)"),roas:g("ROAS")
@@ -523,7 +529,7 @@ function drawEvent(){
     const ts=(M.salesNew||0)+(M.salesExist||0);
     $("m_sales").textContent=(M.salesNew!=null||M.salesExist!=null)?intf(ts):"—";
     $("m_sales_sub").textContent=(M.salesNew!=null)?`${intf(M.salesNew)} new · ${intf(M.salesExist)} existing`:"";
-    $("stamp").textContent="Data pulled "+new Date().toLocaleString("en-GB",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})+" · refresh for latest · v2.1";
+    $("stamp").textContent="Data pulled "+new Date().toLocaleString("en-GB",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})+" · refresh for latest · v2.2";
     return;
   }
 
@@ -559,7 +565,7 @@ function drawEvent(){
   $("k_leads_split").textContent=(paid!=null||nonpaid!=null)?`${intf(paid)} paid · ${intf(nonpaid)} organic`:"";
   const totalSales=(salesNew||0)+(salesExist||0);
   $("k_sales").textContent=(salesNew!=null||salesExist!=null)?intf(totalSales):"—";
-  $("k_sales_split").textContent=(salesNew!=null)?`${intf(salesNew)} new ($497) · ${intf(salesExist)} existing ($1,497)`:"";
+  $("k_sales_split").textContent=(salesNew!=null)?`${intf(salesNew)} new${M.newTier?" ("+M.newTier+")":""} · ${intf(salesExist)} existing${M.existTier?" ("+M.existTier+")":""}`:"";
 
   // Funnel
   const steps=[
@@ -577,8 +583,8 @@ function drawEvent(){
   // Revenue rows
   const rows=[
     {l:"OTO sales",sub:`${intf((otoEB||0)+(otoN||0))} orders`,v:otoRev,badge:null},
-    {l:"New member offers",sub:"$497 tier",v:newOffer,badge:salesNew!=null?`${intf(salesNew)} sold`:null,bc:"b-teal"},
-    {l:"Existing member offers",sub:"$1,497 tier",v:existOffer,badge:salesExist!=null?`${intf(salesExist)} sold`:null,bc:"b-amber"},
+    {l:"New member offers",sub:(M.newTier?M.newTier+" tier":""),v:newOffer,badge:salesNew!=null?`${intf(salesNew)} sold`:null,bc:"b-teal"},
+    {l:"Existing member offers",sub:(M.existTier?M.existTier+" tier":""),v:existOffer,badge:salesExist!=null?`${intf(salesExist)} sold`:null,bc:"b-amber"},
   ];
   let html=rows.map(r=>`<div class="rrow"><span class="rlab"><b>${r.l}</b>${r.badge?`<span class="badge ${r.bc}">${r.badge}</span>`:""}<br><span style="font-size:11.5px;color:var(--ink3)">${r.sub}</span></span><span class="rval">${usd(r.v)}</span></div>`).join("");
   html+=`<div class="rrow total"><span class="rlab">Total revenue</span><span class="rval">${usd(totalRev)}</span></div>`;
@@ -614,7 +620,7 @@ function drawEvent(){
   renderNotes("actions",firstMatch(noteLabels.actions),"Nothing planned yet — add a \"Next Actions\" row on the sheet and write per event.");
   }
 
-  $("stamp").textContent="Data pulled "+new Date().toLocaleString("en-GB",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})+" · refresh for latest · v2.1";
+  $("stamp").textContent="Data pulled "+new Date().toLocaleString("en-GB",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})+" · refresh for latest · v2.2";
 }
 
 function showState(which){["loading","errbox","emptybox","dash"].forEach(id=>$(id).classList.toggle("hidden",id!==which));}
